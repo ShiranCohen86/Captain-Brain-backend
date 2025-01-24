@@ -10,7 +10,7 @@ async function fetchChatResponse(data) {
       {
         model: 'gpt-4',
         messages: data,
-        max_tokens: 150,
+        max_tokens: 200,
       },
       {
         headers: {
