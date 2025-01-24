@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Captain Brain",
+  "name": "Captain Brain",
+  "description": "Captain Brain: Your AI-powered conversation partner for quick answers, creative brainstorming, and friendly chats. Ask anything, get smart responses!",
   "icons": [
     {
       "src": "favicon.ico",
