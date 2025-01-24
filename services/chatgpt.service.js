@@ -5,6 +5,8 @@ const API_URL = 'https://api.openai.com/v1/chat/completions';
 
 async function fetchChatResponse(data) {
   try {
+    console.log("process.env.CHATGPT_API_KEY", process.env.CHATGPT_API_KEY);
+
     return await Axios.post(
       API_URL,
       {
