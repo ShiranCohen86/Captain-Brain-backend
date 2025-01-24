@@ -1,0 +1,7 @@
+{
+    "presets": ["@babel/preset-env"],
+    "scripts": {
+            "start": "node index.js",
+            "build": "babel src -d dist"
+    }
+  }

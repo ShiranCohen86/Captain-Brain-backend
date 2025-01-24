@@ -6,7 +6,7 @@
   "scripts": {
     "server:dev": "set NODE_ENV=development && nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"    
+    "start": "node server.js"
   },
   "author": "",
   "license": "ISC",
@@ -16,5 +16,10 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-session": "^1.18.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.26.4",
+    "@babel/core": "^7.26.7",
+    "@babel/preset-env": "^7.26.7"
   }
 }
