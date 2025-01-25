@@ -6,7 +6,8 @@ const MODEL = "GPT-4o"
 
 async function fetchChatResponse(data) {
   try {
-    alert(MODEL)
+    console.log(MODEL);
+    
     return await Axios.post(
       API_URL,
       {
