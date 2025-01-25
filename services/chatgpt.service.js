@@ -8,7 +8,7 @@ async function fetchChatResponse(data) {
     return await Axios.post(
       API_URL,
       {
-        model: 'gpt-4',
+        model: 'GPT-4o',
         messages: data,
         max_tokens: 200,
       },
