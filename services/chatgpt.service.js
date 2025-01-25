@@ -2,15 +2,19 @@ const logger = require('./logger.service');
 const Axios = require('axios');
 
 const API_URL = 'https://api.openai.com/v1/chat/completions';
-const MODEL = "gpt-4o-2024-08-06"
+const MODEL = "gpt-4o"
 
-async function fetchChatResponse(data) {
+async function fetchChatResponse({ messages, selectedModel }) {
+  selectedModel = selectedModel 
+  console.log({selectedModel});
+  
+
   try {
     return await Axios.post(
       API_URL,
       {
-        model: MODEL,
-        messages: data,
+        model: selectedModel,
+        messages: messages,
         max_tokens: 200,
       },
       {
