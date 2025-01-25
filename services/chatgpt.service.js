@@ -5,10 +5,7 @@ const API_URL = 'https://api.openai.com/v1/chat/completions';
 const MODEL = "gpt-4o"
 
 async function fetchChatResponse({ messages, selectedModel }) {
-  selectedModel = selectedModel 
-  console.log({selectedModel});
-  
-
+  selectedModel = selectedModel || MODEL
   try {
     return await Axios.post(
       API_URL,
