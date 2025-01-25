@@ -1,7 +1,8 @@
 const chatgptService = require('./chatgpt.service');
 
 module.exports = {
-  askQuestion
+  askQuestion,
+  getModels
 }
 
 async function askQuestion(req, res) {
@@ -12,6 +13,26 @@ async function askQuestion(req, res) {
     res.json(resData.data.choices[0].message.content)
   } catch (err) {
     //console.log("Function askQuestion chatgpt.controller",err.response);
+
+    if (err.response?.data) {
+      console.log("chatgpt.controller - ",err.response.data.error);
+      //res.status(500).json(err.response.data.error);
+    } else {
+      //console.log(err);
+      res.status(500).json(err);
+    }
+  }
+}
+async function getModels(req, res) {
+  try {
+    console.log("INNNN");
+    
+    const resData = await chatgptService.getModels()
+    console.log({resData});
+    
+    res.json(resData)
+  } catch (err) {
+    //console.log("Function getModels chatgpt.controller",err.response);
 
     if (err.response?.data) {
       console.log("chatgpt.controller - ",err.response.data.error);

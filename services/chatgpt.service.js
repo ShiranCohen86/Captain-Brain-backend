@@ -2,12 +2,10 @@ const logger = require('./logger.service');
 const Axios = require('axios');
 
 const API_URL = 'https://api.openai.com/v1/chat/completions';
-const MODEL = "GPT-4o"
+const MODEL = "gpt-4o-2024-08-06"
 
 async function fetchChatResponse(data) {
   try {
-    console.log(MODEL);
-    
     return await Axios.post(
       API_URL,
       {
@@ -28,7 +26,23 @@ async function fetchChatResponse(data) {
   }
 }
 
+async function getModels() {
+  try {
+    const modelList = await Axios.get("https://api.openai.com/v1/models", {
+      headers: {
+        Authorization: `Bearer ${process.env.CHATGPT_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+    })
+
+    return modelList.data.data
+  } catch (err) {
+    logger.error("Do Http Request", err.response?.data);
+    throw err
+  }
+}
 
 module.exports = {
-  fetchChatResponse
+  fetchChatResponse,
+  getModels
 }
