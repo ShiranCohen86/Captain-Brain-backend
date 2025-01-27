@@ -5,8 +5,7 @@ async function setupAsyncLocalStorage(req, res, next) {
   const storage = {}
   asyncLocalStorage.run(storage, () => {
     if (req.session?.access_token) {
-      const alsStore = asyncLocalStorage.getStore()
-      alsStore.spotifyToken = req.session.access_token
+      //const alsStore = asyncLocalStorage.getStore()
     }
     next()
   })

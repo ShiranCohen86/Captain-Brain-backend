@@ -1,46 +1,26 @@
 const chatgptService = require('./chatgpt.service');
 
 module.exports = {
-  askQuestion,
-  getModels
+  askAiQuestion,
+  getAvailableModels
 }
 
-async function askQuestion(req, res) {
+async function askAiQuestion(req, res) {
   try {
-    const messages = req.body
-    const resData = await chatgptService.askQuestion(messages)
-    
-    res.json(resData.data.choices[0].message.content)
+    const { messages, selectedModel } = req.body
+    const answer = await chatgptService.askAiQuestion(messages, selectedModel)
+    res.json(answer)
   } catch (err) {
-    //console.log("Function askQuestion chatgpt.controller",err.response);
-
-    if (err.response?.data) {
-      console.log("chatgpt.controller - ",err.response.data.error);
-      //res.status(500).json(err.response.data.error);
-    } else {
-      //console.log(err);
-      res.status(500).json(err);
-    }
+    res.status(500).json(err);
   }
 }
-async function getModels(req, res) {
-  try {
-    console.log("INNNN");
-    
-    const resData = await chatgptService.getModels()
-    console.log({resData});
-    
-    res.json(resData)
-  } catch (err) {
-    //console.log("Function getModels chatgpt.controller",err.response);
 
-    if (err.response?.data) {
-      console.log("chatgpt.controller - ",err.response.data.error);
-      //res.status(500).json(err.response.data.error);
-    } else {
-      //console.log(err);
-      res.status(500).json(err);
-    }
+async function getAvailableModels(req, res) {
+  try {
+    const models = await chatgptService.getAvailableModels()
+    res.json(models)
+  } catch (err) {
+    res.status(500).json(err);
   }
 }
 

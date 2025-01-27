@@ -1,10 +1,10 @@
 const express = require("express");
 const router = express.Router();
 
-const { askQuestion,getModels } = require("./chatgpt.controller");
+const { askAiQuestion,getAvailableModels } = require("./chatgpt.controller");
 
-router.post("/", askQuestion);
-router.get("/models", getModels);
+router.post("/ask-ai", askAiQuestion);
+router.get("/models", getAvailableModels);
 
 
 
