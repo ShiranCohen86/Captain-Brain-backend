@@ -39,8 +39,8 @@ const setupAsyncLocalStorage = require("./middlewares/setupAls.middleware");
 app.all("*", setupAsyncLocalStorage);
 
 
-const chatgptRoutes = require("./api/chatgpt/chatgpt.routes");
-app.use("/api/chatgpt", chatgptRoutes);
+const openAiRoutes = require("./api/openAi/openAi.routes");
+app.use("/api/openAi", openAiRoutes);
 
 // Make every server-side-route to match the index.html
 // so when requesting http://localhost:3030/index.html/car/123 it will still respond with
