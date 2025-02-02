@@ -1,3 +1,4 @@
+const axios = require('axios');
 const httpService = require('../../services/httpService');
 
 const API_URL = 'https://api.openai.com/v1';
@@ -34,14 +35,21 @@ async function getAvailableModels() {
 
 async function askAiQuestion(userMessage, messagesLog) {
 	try {
-		const model = _selectModel(userMessage)
+		messagesLog.push({
+			"role": "system",
+			"content": "You are an AI that provides clear, detailed, and well-organized answers. Use proper HTML structure with <h1>, <h2>, <p>, <ul>."
+		}
 
+		)
+		const model = "gpt-4-turbo"
 		const httpDataObj = {
 			headers: API_HEADERS,
 			data: {
 				messages: messagesLog,
 				model,
-				max_tokens: 200,
+				max_tokens: 4096,
+				temperature: 0.7,
+				top_p: 1.0
 			}
 
 		}
@@ -52,6 +60,35 @@ async function askAiQuestion(userMessage, messagesLog) {
 
 		// TO FIX For Loop choices
 		const answer = choices[0].message.content
+		const isSearchGoogle = answer.includes("don't have real-time") || answer.includes("provide real-time") || answer.includes("require an internet")
+		if (isSearchGoogle) {
+
+			const googleResults = await _searchGoogleCustomAPI(userMessage)
+			//const messagesByGoogleResult = _setGoogleResultToMessagesFormat(googleResults)
+
+			const messagesByGoogleResult = `Summarize the following search results:\n` +
+				googleResults.map(result => `Title: ${result.title}\nSnippet: ${result.snippet}\nLink: ${result.link}`).join("\n\n");
+
+			messagesLog.push({ role: "assistant", content: messagesByGoogleResult })
+
+			const httpDataObj = {
+				headers: API_HEADERS,
+				data: {
+					messages: messagesLog,
+					model,
+					max_tokens: 4096,
+					temperature: 0.7,
+					top_p: 1.0
+				}
+
+			}
+
+			const askAiResWithGoogle = await httpService.httpPost(`${API_URL}/chat/completions`, httpDataObj)
+			console.log(askAiResWithGoogle.data.choices[0].message.content);
+
+			return askAiResWithGoogle.data.choices[0].message.content
+
+		}
 		//const isAdded = await _addAnswerToDb(answer)
 		return answer
 
@@ -142,35 +179,33 @@ function getRoleByMessage(message) {
 	return 'user';
 
 };
+function _setGoogleResultToMessagesFormat(googleResults) {
+	return googleResults.map((result) => {
+		return {
+			role: "system",
+			content: result.snippet
+		}
+	})
+}
+// Function to search using Google Custom Search API
+async function _searchGoogleCustomAPI(query) {
+	const url = 'https://www.googleapis.com/customsearch/v1';
 
-// Function to select the model based on the complexity of the question
-function _selectModel(question) {
-	// Trim leading/trailing spaces
-	const trimmedQuestion = question.trim();
+	try {
+		// Send the GET request to the Custom Search API
+		const response = await axios.get(url, {
+			params: {
+				key: `${process.env.GOOGLE_API_KEY}`,  // Your API key
+				cx: `${process.env.CHATGPT_CX}`,       // Your Custom Search Engine ID
+				q: query,     // Search query
+			},
+		});
 
-	// Check for question length
-	const questionLength = trimmedQuestion.length;
-
-	// Check for keywords related to code
-	const codeKeywords = ['code', 'algorithm', 'debug', 'function', 'programming', 'error', 'loop', 'class'];
-	const containsCodeKeywords = codeKeywords.some(keyword => trimmedQuestion.toLowerCase().includes(keyword));
-
-	// Check for complex reasoning or abstract topics
-	const complexKeywords = ['explain', 'how', 'why', 'define', 'mathematics', 'theory', 'history', 'philosophy', "הסבר", "האם"];
-	const containsComplexKeywords = complexKeywords.some(keyword => trimmedQuestion.toLowerCase().includes(keyword));
-
-	// Model selection logic
-	if (questionLength > 150 || containsComplexKeywords) {
-		// For complex, long, or abstract questions
-		return 'gpt-4';  // Use the most powerful model for high complexity and reasoning
-	} else if (containsCodeKeywords) {
-		// For programming-related queries
-		return 'code-davinci-002';  // Use code-davinci-002 for code tasks
-	} else if (questionLength > 100) {
-		// For moderately complex questions
-		return 'gpt-3.5-turbo';  // A good general-purpose model for most tasks
-	} else {
-		// For short, simple questions
-		return 'gpt-3.5-turbo';  // Use gpt-3.5-turbo for short, quick questions
+		// Handle and display the search results
+		//console.log(response.data.items);  // The search results
+		return response.data.items
+	} catch (error) {
+		console.error("Error fetching data from Google Custom Search API:", error);
 	}
 }
+
