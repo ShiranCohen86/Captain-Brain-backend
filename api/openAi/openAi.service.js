@@ -55,14 +55,14 @@ async function askAiQuestion(userMessage, messagesLog) {
 		}
 
 		const askAiRes = await httpService.httpPost(`${API_URL}/chat/completions`, httpDataObj)
-
 		const choices = askAiRes.data.choices
 
 		// TO FIX For Loop choices
 		const answer = choices[0].message.content
 		const isSearchGoogle = answer.includes("don't have real-time") || answer.includes("provide real-time") || answer.includes("require an internet")
 		if (isSearchGoogle) {
-
+			console.log("IN isSearchGoogle");
+			
 			const googleResults = await _searchGoogleCustomAPI(userMessage)
 			//const messagesByGoogleResult = _setGoogleResultToMessagesFormat(googleResults)
 
@@ -84,7 +84,6 @@ async function askAiQuestion(userMessage, messagesLog) {
 			}
 
 			const askAiResWithGoogle = await httpService.httpPost(`${API_URL}/chat/completions`, httpDataObj)
-			console.log(askAiResWithGoogle.data.choices[0].message.content);
 
 			return askAiResWithGoogle.data.choices[0].message.content
 
