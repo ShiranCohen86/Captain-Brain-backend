@@ -56,7 +56,7 @@ async function askAiQuestion(userMessage, messagesLog) {
 
 		const askAiRes = await httpService.httpPost(`${API_URL}/chat/completions`, httpDataObj)
 		const choices = askAiRes.data.choices
-
+		
 		// TO FIX For Loop choices
 		const answer = choices[0].message.content
 		const isSearchGoogle = answer.includes("don't have real-time") || answer.includes("provide real-time") || answer.includes("require an internet")
