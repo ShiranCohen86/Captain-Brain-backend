@@ -2,8 +2,22 @@ const openAiService = require('./openAi.service');
 
 module.exports = {
   askAiQuestion,
-  getAvailableModels
+  getAvailableModels,
+  consoleLogBackend
 }
+
+function consoleLogBackend(req, res) {
+  try {
+    console.dir(req.body);
+    
+    
+
+    res.json("")
+  } catch (err) {
+    res.status(500).json(err);
+  }
+}
+
 
 async function askAiQuestion(req, res) {
   try {
