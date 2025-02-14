@@ -38,9 +38,15 @@ app.use(session);
 const setupAsyncLocalStorage = require("./middlewares/setupAls.middleware");
 app.all("*", setupAsyncLocalStorage);
 
-
+const authRoutes = require('./api/auth/auth.routes')
 const openAiRoutes = require("./api/openAi/openAi.routes");
+const userRoutes = require('./api/user/user.routes')
+
+app.use('/api/auth', authRoutes)
 app.use("/api/openAi", openAiRoutes);
+app.use('/api/user', userRoutes)
+
+
 
 // Make every server-side-route to match the index.html
 // so when requesting http://localhost:3030/index.html/car/123 it will still respond with

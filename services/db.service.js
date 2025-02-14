@@ -1,4 +1,6 @@
 const MongoClient = require('mongodb').MongoClient
+const logger = require("../services/logger.service");
+
 
 const config = require('../config')
 
@@ -7,14 +9,18 @@ module.exports = {
 }
 
 // Database Name
-const dbName = 'misterBitcoinDB'
+const dbName = 'CaptainBrainDB'
+const client = new MongoClient(config.dbURL);
+
 
 var dbConn = null
 
 async function getCollection(collectionName) {
     try {
-        const db = await connect()
-        const collection = await db.collection(collectionName)
+        await client.connect();
+        const database = client.db(dbName)
+        const collection = database.collection(collectionName);
+
         return collection
     } catch (err) {
         logger.error('Failed to get Mongo collection', err)
@@ -22,18 +28,6 @@ async function getCollection(collectionName) {
     }
 }
 
-async function connect() {
-    if (dbConn) return dbConn
-    try {
-        const client = await MongoClient.connect(config.dbURL, { useNewUrlParser: true, useUnifiedTopology: true })
-        const db = client.db(dbName)
-        dbConn = db
-        return db
-    } catch (err) {
-        logger.error('Cannot Connect to DB', err)
-        throw err
-    }
-}
 
 
 
