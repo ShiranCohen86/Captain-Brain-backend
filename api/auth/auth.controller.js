@@ -9,8 +9,11 @@ module.exports = {
 
 async function login(req, res) {
     const { username, password } = req.body
+    
     try {
         const user = await authService.login(username, password)
+        console.log(user);
+        
         req.session.user = user
         res.json(user)
     } catch (err) {
@@ -22,11 +25,13 @@ async function login(req, res) {
 async function signup(req, res) {
     try {
         const newUser = req.body
+        console.log("New user:", newUser);
+
 
         const passForLogin = newUser.password
-        const account = await authService.signup(newUser)
+        const user = await authService.signup(newUser)
 
-        res.json({ status: "ok" })
+        res.json(user)
         /*
         logger.debug(`auth.route - new account created: ` + JSON.stringify(account))
         const user = await authService.login(newUser.username, passForLogin)
