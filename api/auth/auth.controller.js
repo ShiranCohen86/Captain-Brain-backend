@@ -12,7 +12,6 @@ async function login(req, res) {
     
     try {
         const user = await authService.login(username, password)
-        console.log(user);
         
         req.session.user = user
         res.json(user)
@@ -25,7 +24,6 @@ async function login(req, res) {
 async function signup(req, res) {
     try {
         const newUser = req.body
-        console.log("New user:", newUser);
 
 
         const passForLogin = newUser.password
