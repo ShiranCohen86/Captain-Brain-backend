@@ -29,11 +29,13 @@ async function signup(req, res) {
 
         const passForLogin = newUser.password
         const isSignup = await authService.signup(newUser)
+        console.log({ isSignup });
+
         if (!isSignup.success) return res.status(401).send(isSignup.message)
 
         req.session.user = newUser
         console.log(2);
-        
+
         res.json(newUser)
         /*
         logger.debug(`auth.route - new account created: ` + JSON.stringify(account))

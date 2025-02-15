@@ -24,6 +24,8 @@ async function signup(user) {
     const hash = await bcrypt.hash(user.password, saltRounds);
     user.password = hash;
     const isAdd = await userService.add(user);
+    console.log({ isAdd });
+
     if (!isAdd.success) return { success: isAdd.success, message: isAdd.message }
     logger.debug(`auth.service - signup with username: ${user.phone}, fullname: ${user.name}`);
     return { success: true }
