@@ -93,10 +93,14 @@ async function add(user) {
         //     fullname: user.fullname,
         // }
 
+        console.log("aaaaa");
 
         const collection = await dbService.getCollection('user')
+        console.log("bbbbb", collection);
         const dbUser = await collection.findOne({ phone: user.phone })
+        console.log("cccccc"), dbUser;
         if (dbUser) return { success: false, message: "phone exist" }
+        console.log("dddddd");
 
         await collection.insertOne(user)
 
