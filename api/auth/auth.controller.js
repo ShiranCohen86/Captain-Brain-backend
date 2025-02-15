@@ -24,6 +24,7 @@ async function login(req, res) {
 async function signup(req, res) {
     try {
         const newUser = req.body
+        console.log({ newUser });
 
 
         const passForLogin = newUser.password
