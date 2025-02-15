@@ -50,18 +50,13 @@ async function getById(userId) {
         throw err
     }
 }
-async function getByUsername(username) {
+async function getByUsername(phone) {
     try {
         const collection = await dbService.getCollection('user')
-        const user = await collection.findOne({
-            $or: [
-                { email: username },
-                { phone: username }
-            ]
-        })
+        const user = await collection.findOne({ phone })
         return user
     } catch (err) {
-        logger.error(`while finding user ${username}`, err)
+        logger.error(`while finding phone ${phone}`, err)
         throw err
     }
 }
@@ -100,9 +95,13 @@ async function add(user) {
 
 
         const collection = await dbService.getCollection('user')
-        collection.insertOne(user)
+        const dbUser = await collection.findOne({ phone: user.phone })
+        if (dbUser) return { success: false, message: "phone exist" }
 
-        return true
+        await collection.insertOne(user)
+
+
+        return { success: true }
     } catch (err) {
         logger.error('cannot insert user', err)
         throw err

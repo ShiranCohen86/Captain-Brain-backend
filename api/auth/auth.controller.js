@@ -8,11 +8,11 @@ module.exports = {
 }
 
 async function login(req, res) {
-    const { username, password } = req.body
-    
+    const { phone, password } = req.body
+
     try {
-        const user = await authService.login(username, password)
-        
+        const user = await authService.login(phone, password)
+
         req.session.user = user
         res.json(user)
     } catch (err) {
@@ -27,18 +27,20 @@ async function signup(req, res) {
 
 
         const passForLogin = newUser.password
-        const user = await authService.signup(newUser)
+        const isSignup = await authService.signup(newUser)
+        if (!isSignup.success) return res.status(401).send(isSignup.message)
 
-        res.json(user)
+        req.session.user = newUser
+        res.json(newUser)
         /*
         logger.debug(`auth.route - new account created: ` + JSON.stringify(account))
         const user = await authService.login(newUser.username, passForLogin)
-        req.session.user = user
         res.json(user)
         */
     } catch (err) {
         logger.error('Failed to signup ' + err)
-        res.status(500).send({ err: 'Failed to signup' })
+
+        res.status(500).send(err)
     }
 }
 
