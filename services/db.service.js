@@ -18,7 +18,6 @@ const client = new MongoClient(config.dbURL);
 var dbConn = null
 
 async function getCollection(collectionName) {
-    console.log(config.dbURL, collectionName);
     try {
         await client.connect();
         const database = client.db(dbName)
