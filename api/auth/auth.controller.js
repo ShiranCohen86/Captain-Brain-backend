@@ -32,6 +32,8 @@ async function signup(req, res) {
         if (!isSignup.success) return res.status(401).send(isSignup.message)
 
         req.session.user = newUser
+        console.log(2);
+        
         res.json(newUser)
         /*
         logger.debug(`auth.route - new account created: ` + JSON.stringify(account))
