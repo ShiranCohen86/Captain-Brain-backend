@@ -8,14 +8,22 @@ module.exports = {
 };
 
 async function login(phone, password) {
-  logger.debug(`auth.service - login with phone: ${phone}`);
-  const user = await userService.getByUsername(phone);
-  if (!user) return Promise.reject("Invalid phone");
-  const match = await bcrypt.compare(password, user.password);
-  if (!match) return Promise.reject("Invalid password");
+  try {
+    const resObj = await userService.getByUsername(phone);
+    if (!resObj.success) return { success: resObj.success, message: resObj.message }
 
-  delete user.password;
-  return user;
+    const user = resObj.user
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return { success: false, message: "incorrect password" }
+
+    logger.debug(`auth.service - login with phone: ${phone}`);
+    delete user._id;
+    delete user.password;
+    return { success: true, user };
+  } catch (error) {
+    throw error
+  }
+
 }
 
 async function signup(user) {
@@ -24,12 +32,12 @@ async function signup(user) {
     const hash = await bcrypt.hash(user.password, saltRounds);
     user.password = hash;
     const isAdd = await userService.add(user);
-    console.log({ isAdd });
-
     if (!isAdd.success) return { success: isAdd.success, message: isAdd.message }
-    logger.debug(`auth.service - signup with username: ${user.phone}, fullname: ${user.name}`);
-    return { success: true }
 
+    logger.debug(`auth.service - signup with phone: ${user.phone}, fullname: ${user.name}`);
+    delete user._id;
+    delete user.password;
+    return { success: true, user }
   } catch (error) {
     throw error
   }

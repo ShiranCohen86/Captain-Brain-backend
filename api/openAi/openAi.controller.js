@@ -9,8 +9,8 @@ module.exports = {
 function consoleLogBackend(req, res) {
   try {
     console.dir(req.body);
-    
-    
+
+
 
     res.json("")
   } catch (err) {
@@ -21,6 +21,8 @@ function consoleLogBackend(req, res) {
 
 async function askAiQuestion(req, res) {
   try {
+    console.log("req.body", req.body);
+
     const { userMessage } = req.body
     const isLoggedUser = req.session.isLogged || 0
 

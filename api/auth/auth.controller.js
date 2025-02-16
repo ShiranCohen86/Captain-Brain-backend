@@ -8,43 +8,33 @@ module.exports = {
 }
 
 async function login(req, res) {
-    const { phone, password } = req.body
-
     try {
-        const user = await authService.login(phone, password)
+        const { phone, password } = req.body
+        const resObj = await authService.login(phone, password)
+        if (!resObj.success) return res.status(401).send(resObj.message)
 
-        req.session.user = user
-        res.json(user)
+        req.session.user = resObj.user
+        res.json(resObj.user)
     } catch (err) {
         logger.error('Failed to Login ' + err)
-        res.status(401).send({ err: 'Failed to Login' })
+        res.status(500).send(err)
     }
 }
 
 async function signup(req, res) {
     try {
         const newUser = req.body
-        console.log({ newUser });
-
-
         const passForLogin = newUser.password
-        const isSignup = await authService.signup(newUser)
-        console.log({ isSignup });
-
-        if (!isSignup.success) return res.status(401).send(isSignup.message)
+        const resObj = await authService.signup(newUser)
+        if (!resObj.success) return res.status(401).send(resObj.message)
 
         req.session.user = newUser
-        console.log(2);
-
-        res.json(newUser)
+        res.json(resObj.user)
         /*
         logger.debug(`auth.route - new account created: ` + JSON.stringify(account))
-        const user = await authService.login(newUser.username, passForLogin)
-        res.json(user)
         */
     } catch (err) {
         logger.error('Failed to signup ' + err)
-
         res.status(500).send(err)
     }
 }

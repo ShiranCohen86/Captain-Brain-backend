@@ -53,8 +53,12 @@ async function getById(userId) {
 async function getByUsername(phone) {
     try {
         const collection = await dbService.getCollection('user')
+        console.log(phone);
+
         const user = await collection.findOne({ phone })
-        return user
+        console.log(user);
+        if (!user) return { success: false, message: "no exist user" }
+        return { success: true, user }
     } catch (err) {
         logger.error(`while finding phone ${phone}`, err)
         throw err
@@ -92,19 +96,10 @@ async function add(user) {
         //     password: user.password,
         //     fullname: user.fullname,
         // }
-
-        console.log("aaaaa");
-
         const collection = await dbService.getCollection('user')
-        console.log("bbbbb", collection);
         const dbUser = await collection.findOne({ phone: user.phone })
-        console.log("cccccc"), dbUser;
         if (dbUser) return { success: false, message: "phone exist" }
-        console.log("dddddd");
-
         await collection.insertOne(user)
-
-
         return { success: true }
     } catch (err) {
         logger.error('cannot insert user', err)
