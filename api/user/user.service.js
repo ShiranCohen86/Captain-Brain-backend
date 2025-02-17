@@ -53,10 +53,7 @@ async function getById(userId) {
 async function getByUsername(phone) {
     try {
         const collection = await dbService.getCollection('user')
-        console.log(phone);
-
         const user = await collection.findOne({ phone })
-        console.log(user);
         if (!user) return { success: false, message: "no exist user" }
         return { success: true, user }
     } catch (err) {

@@ -20,9 +20,9 @@ function consoleLogBackend(req, res) {
 
 
 async function askAiQuestion(req, res) {
-  try {
-    console.log("req.body", req.body);
+  console.log("askAiQuestion", req.session);
 
+  try {
     const { userMessage } = req.body
     const isLoggedUser = req.session.isLogged || 0
 

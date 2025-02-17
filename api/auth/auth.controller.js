@@ -1,4 +1,5 @@
 const authService = require('./auth.service')
+const userService = require('../user/user.service')
 const logger = require('../../services/logger.service')
 
 module.exports = {
@@ -9,8 +10,17 @@ module.exports = {
 
 async function login(req, res) {
     try {
-        const { phone, password } = req.body
-        const resObj = await authService.login(phone, password)
+        let { phone, password } = req.body
+        let resObj = {}
+        console.log("login", req.session);
+
+        if (req.session?.user?.phone) {
+            phone = req.session.user.phone
+            resObj = await userService.getByUsername(phone);
+        }
+        if (!Object.keys(resObj).length) {
+            resObj = await authService.login(phone, password)
+        }
         if (!resObj.success) return res.status(401).send(resObj.message)
 
         req.session.user = resObj.user

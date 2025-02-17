@@ -17,7 +17,6 @@ async function login(phone, password) {
     if (!match) return { success: false, message: "incorrect password" }
 
     logger.debug(`auth.service - login with phone: ${phone}`);
-    delete user._id;
     delete user.password;
     return { success: true, user };
   } catch (error) {
@@ -35,7 +34,6 @@ async function signup(user) {
     if (!isAdd.success) return { success: isAdd.success, message: isAdd.message }
 
     logger.debug(`auth.service - signup with phone: ${user.phone}, fullname: ${user.name}`);
-    delete user._id;
     delete user.password;
     return { success: true, user }
   } catch (error) {
