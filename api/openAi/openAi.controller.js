@@ -25,7 +25,6 @@ async function askAiQuestion(req, res) {
     const isLoggedUser = req.session.isLogged || 0
 
     const messagesHis = []
-
     if (isLoggedUser) {
       messagesHis.push(openAiService.getMessagesByUserId(req.session.userId))
     } else {
