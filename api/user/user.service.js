@@ -10,7 +10,8 @@ module.exports = {
     getByUsername,
     remove,
     update,
-    add
+    add,
+    getByToken
 }
 
 async function query(filterBy = {}) {
@@ -61,6 +62,18 @@ async function getByUsername(phone) {
         throw err
     }
 }
+async function getByToken(token) {
+    try {
+        if (!token) return { success: false, message: "no token value" }
+        const collection = await dbService.getCollection('user')
+        const user = await collection.findOne({ token })
+        if (!user) return { success: false, message: "no exist user" }
+        return { success: true, user }
+    } catch (err) {
+        logger.error(`while finding phone ${phone}`, err)
+        throw err
+    }
+}
 
 async function remove(userId) {
     try {
@@ -74,10 +87,9 @@ async function remove(userId) {
 
 async function update(user) {
     try {
-        // peek only updatable fields!
-        user._id = ObjectId(user._id)
         const collection = await dbService.getCollection('user')
-        await collection.updateOne({ '_id': user._id }, { $set: user })
+        collection.updateOne({ '_id': user._id }, { $set: user })
+
         return user;
     } catch (err) {
         logger.error(`cannot update user ${user._id}`, err)
@@ -96,6 +108,7 @@ async function add(user) {
         const collection = await dbService.getCollection('user')
         const dbUser = await collection.findOne({ phone: user.phone })
         if (dbUser) return { success: false, message: "phone exist" }
+        user.token = user.phone
         await collection.insertOne(user)
         return { success: true }
     } catch (err) {

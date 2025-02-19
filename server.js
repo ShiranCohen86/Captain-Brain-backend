@@ -12,9 +12,9 @@ const session = expressSession({
     secret: "coding is amazing",
     resave: false,
     saveUninitialized: true,
-    //proxy: true,
+    //proxy: true,|| process.env.NODE_ENV === "production"
     cookie: {
-        secure: process.env.NODE_ENV === "production",
+        secure: true,
         httpOnly: true,
         maxAge: 1000 * 60 * 60 * 24 * 7
     },
