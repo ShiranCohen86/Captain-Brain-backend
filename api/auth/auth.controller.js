@@ -1,11 +1,28 @@
 const authService = require('./auth.service')
 const userService = require('../user/user.service')
 const logger = require('../../services/logger.service')
+const axios = require('axios');
+
 
 module.exports = {
     login,
     signup,
-    logout
+    logout,
+    getSrc
+}
+
+async function getSrc(req, res) {
+    try {
+        const { lat, lng } = req.body
+        console.log(req.body);
+
+        const test = await axios.get(`https://www.google.com/maps/embed/v1/view?key=${process.env.GOOGLE_MAP_KEY}&center=${lat},${lng}&zoom=15`);
+
+        res.json(test)
+    } catch (err) {
+        logger.error('Failed to Login ' + err)
+        res.status(500).send(err)
+    }
 }
 
 async function login(req, res) {
