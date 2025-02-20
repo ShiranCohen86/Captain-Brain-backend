@@ -19,7 +19,7 @@ console.log("lng",lng);
 
         const test = await axios.get(`https://www.google.com/maps/embed/v1/view?key=${process.env.GOOGLE_MAP_KEY}&center=${lat},${lng}&zoom=15`);
 console.log("test",test);
-        res.json("https://www.google.com/maps/embed/v1/view?key=${process.env.GOOGLE_MAP_KEY}&center=${lat},${lng}&zoom=15")
+        res.json(`https://www.google.com/maps/embed/v1/view?key=${process.env.GOOGLE_MAP_KEY}&center=${lat},${lng}&zoom=15`)
     } catch (err) {
         logger.error('Failed to Login ' + err)
         console.log(err);
