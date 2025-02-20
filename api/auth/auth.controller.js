@@ -13,17 +13,21 @@ module.exports = {
 
 async function getSrc(req, res) {
     try {
+        console.log(111);
+        
         const { lat, lng } = req.body
-        console.log("lat",lat);
-console.log("lng",lng);
+        const googleMapsUrl = `https://www.google.com/maps/embed/v1/view?key=${process.env.GOOGLE_MAP_KEY}&center=${lat},${lng}&zoom=15`
 
-        const test = await axios.get(`https://www.google.com/maps/embed/v1/view?key=${process.env.GOOGLE_MAP_KEY}&center=${lat},${lng}&zoom=15`);
-console.log("test",test);
-        res.json(`https://www.google.com/maps/embed/v1/view?key=${process.env.GOOGLE_MAP_KEY}&center=${lat},${lng}&zoom=15`)
+        const response = await axios.get(googleMapsUrl);
+
+        res.json(response.data)
+
+
     } catch (err) {
         logger.error('Failed to Login ' + err)
         console.log(err);
-res.status(500).send(err)
+        res.status(500).send(err)
+
     }
 }
 
