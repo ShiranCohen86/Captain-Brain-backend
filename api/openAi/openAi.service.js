@@ -37,7 +37,7 @@ async function askAiQuestion(userMessage, messagesLog) {
 	try {
 		messagesLog.push({
 			"role": "system",
-			"content": "Use proper HTML structure with <h1>, <h2>, <p>, <ul>. if you do nםt know the answer or no real data return in capital letter NO INTERNT"
+			"content": "Use proper HTML structure with <h1>, <h2>, <p>, <ul>. if the answer require real data that you do not have return in capital letter NO INTERNT"
 
 		})
 		messagesLog.push({
