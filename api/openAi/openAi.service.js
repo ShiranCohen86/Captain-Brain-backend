@@ -37,11 +37,16 @@ async function askAiQuestion(userMessage, messagesLog) {
 	try {
 		messagesLog.push({
 			"role": "system",
-			"content": "You are an AI that provides clear, detailed, and well-organized answers. Use proper HTML structure with <h1>, <h2>, <p>, <ul>."
-		}
+			"content": "Use proper HTML structure with <h1>, <h2>, <p>, <ul>. if you do nםt know the answer or no real data return in capital letter NO INTERNT"
 
-		)
-		const model = "gpt-4-turbo"
+		})
+		messagesLog.push({
+			"role": "system",
+			"content": "You are a highly adaptable assistant who tailors your responses based on the tone and nature of the user’s questions. Your responses should align with the mood and content of the query, ensuring they feel appropriate and engaging. For serious questions, provide informative and thoughtful responses. For humorous questions, use humor and wit."
+
+		})
+
+		const model = _getBestGPTModelResponse(userMessage)
 		const httpDataObj = {
 			headers: API_HEADERS,
 			data: {
@@ -56,25 +61,24 @@ async function askAiQuestion(userMessage, messagesLog) {
 
 		const askAiRes = await httpService.httpPost(`${API_URL}/chat/completions`, httpDataObj)
 		const choices = askAiRes.data.choices
-		
+
 		// TO FIX For Loop choices
 		const answer = choices[0].message.content
-		const isSearchGoogle = answer.includes("don't have real-time") || answer.includes("provide real-time") || answer.includes("require an internet")
-		if (isSearchGoogle) {
-			console.log("IN isSearchGoogle");
-			
+		const isSearchGoogle = (answer == "NO INTERNET") || answer.includes("don't have real-time") || answer.includes("provide real-time") || answer.includes("require an internet")
+		if (answer == "NO INTERNET") {
+
 			const googleResults = await _searchGoogleCustomAPI(userMessage)
 			//const messagesByGoogleResult = _setGoogleResultToMessagesFormat(googleResults)
 
 			const messagesByGoogleResult = `Summarize the following search results:\n` +
 				googleResults.map(result => `Title: ${result.title}\nSnippet: ${result.snippet}\nLink: ${result.link}`).join("\n\n");
 
-			messagesLog.push({ role: "assistant", content: messagesByGoogleResult })
+			//messagesLog.push({ role: "assistant", content: messagesByGoogleResult })
 
 			const httpDataObj = {
 				headers: API_HEADERS,
 				data: {
-					messages: messagesLog,
+					messages: [{ role: "assistant", content: messagesByGoogleResult }],
 					model,
 					max_tokens: 4096,
 					temperature: 0.7,
@@ -92,7 +96,6 @@ async function askAiQuestion(userMessage, messagesLog) {
 		return answer
 
 	} catch (err) {
-		console.log(err.response.data.error)
 		throw err
 	}
 }
@@ -207,4 +210,16 @@ async function _searchGoogleCustomAPI(query) {
 		console.error("Error fetching data from Google Custom Search API:", error);
 	}
 }
+function _getBestGPTModelResponse(question) {
+	const questionLength = question.length;
 
+	let model = '';
+	if (questionLength < 25) {
+		model = 'gpt-3.5-turbo';
+	} else if (questionLength < 50) {
+		model = 'gpt-4-turbo';
+	} else {
+		model = 'gpt-4';
+	}
+	return model;
+}

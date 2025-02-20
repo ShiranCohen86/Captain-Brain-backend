@@ -13,8 +13,6 @@ module.exports = {
 
 async function getSrc(req, res) {
     try {
-        console.log(111);
-        
         const { lat, lng } = req.body
         const googleMapsUrl = `https://www.google.com/maps/embed/v1/view?key=${process.env.GOOGLE_MAP_KEY}&center=${lat},${lng}&zoom=15`
 
@@ -25,7 +23,6 @@ async function getSrc(req, res) {
 
     } catch (err) {
         logger.error('Failed to Login ' + err)
-        console.log(err);
         res.status(500).send(err)
 
     }
