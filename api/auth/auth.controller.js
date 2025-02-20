@@ -21,7 +21,8 @@ async function getSrc(req, res) {
         res.json(test)
     } catch (err) {
         logger.error('Failed to Login ' + err)
-        res.status(500).send(err)
+        console.log(err);
+res.status(500).send(err)
     }
 }
 
