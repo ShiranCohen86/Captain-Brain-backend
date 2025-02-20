@@ -14,7 +14,8 @@ module.exports = {
 async function getSrc(req, res) {
     try {
         const { lat, lng } = req.body
-        console.log(req.body);
+        console.log("lat",lat);
+console.log("lng",lng);
 
         const test = await axios.get(`https://www.google.com/maps/embed/v1/view?key=${process.env.GOOGLE_MAP_KEY}&center=${lat},${lng}&zoom=15`);
 
