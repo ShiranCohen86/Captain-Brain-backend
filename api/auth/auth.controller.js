@@ -18,7 +18,7 @@ async function getSrc(req, res) {
 console.log("lng",lng);
 
         const test = await axios.get(`https://www.google.com/maps/embed/v1/view?key=${process.env.GOOGLE_MAP_KEY}&center=${lat},${lng}&zoom=15`);
-
+console.log("test",test);
         res.json(test)
     } catch (err) {
         logger.error('Failed to Login ' + err)
