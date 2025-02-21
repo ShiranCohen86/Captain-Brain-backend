@@ -41,7 +41,7 @@ async function askAiQuestion(userMessage, messagesLog) {
 		const systemMessages = []
 		systemMessages.push({
 			"role": "system",
-			"content": "Use proper HTML structure with <h1>, <h2>, <p>, <ul>."
+			"content": "the answer from you set in proper HTML structure with <h1>, <h2>, <p>, <ul>."
 
 		})
 		systemMessages.push({
