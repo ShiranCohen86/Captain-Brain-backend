@@ -77,8 +77,7 @@ async function askAiQuestion(userMessage, messagesLog) {
 
 		// TO FIX For Loop choices
 		const answer = choices[0].message.content
-		const isSearchGoogle = (answer == "NO INTERNET") || answer.includes("don't have real-time") || answer.includes("provide real-time") || answer.includes("require an internet")
-		if (answer == "NO INTERNET" || answer.includes("NO INTERNET")) {
+		if (answer.toLowerCase().includes("no internet")) {
 
 			const googleResults = await _searchGoogleCustomAPI(userMessage)
 			console.log("3");
@@ -91,7 +90,7 @@ async function askAiQuestion(userMessage, messagesLog) {
 				role: "assistant",
 				content: summarizeGoogleResult
 			}
-			const messagesToAiByGoogle=messagesByGoogle.concat(systemMessages)
+			const messagesToAiByGoogle = messagesByGoogle.concat(systemMessages)
 
 			const httpDataObj = {
 				headers: API_HEADERS,
