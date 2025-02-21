@@ -90,12 +90,12 @@ async function askAiQuestion(userMessage, messagesLog) {
 				role: "assistant",
 				content: summarizeGoogleResult
 			}
-			systemMessages.push(messagesByGoogle)
+			messagesToAi.push(messagesByGoogle)
 
 			const httpDataObj = {
 				headers: API_HEADERS,
 				data: {
-					messages: systemMessages,
+					messages: messagesToAi,
 					model,
 					max_tokens: 4096,
 					temperature: 0.7,
