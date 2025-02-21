@@ -10,7 +10,7 @@ async function getUser(req, res) {
         res.status(500).send({ err: 'Failed to get user' })
     }
 }
- 
+
 async function getUsers(req, res) {
     try {
         const filterBy = {
@@ -45,10 +45,22 @@ async function updateUser(req, res) {
         res.status(500).send({ err: 'Failed to update user' })
     }
 }
+async function addConversation(req, res) {
+    try {
+        const { id } = req.params
+        const conversation = req.body
+        const savedUser = await userService.addConversation(conversation, id)
+        res.send(true)
+    } catch (err) {
+        logger.error('Failed to update user', err)
+        res.status(500).send({ err: 'Failed to update user' })
+    }
+}
 
 module.exports = {
     getUser,
     getUsers,
     deleteUser,
-    updateUser
+    updateUser,
+    addConversation
 }

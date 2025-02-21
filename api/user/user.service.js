@@ -1,8 +1,7 @@
 
 const dbService = require('../../services/db.service')
 const logger = require('../../services/logger.service')
-
-const ObjectId = require('mongodb').ObjectId
+const { ObjectId } = require("mongodb");
 
 module.exports = {
     query,
@@ -11,7 +10,8 @@ module.exports = {
     remove,
     update,
     add,
-    getByToken
+    getByToken,
+    addConversation
 }
 
 async function query(filterBy = {}) {
@@ -137,3 +137,16 @@ function _buildCriteria(filterBy) {
 }
 
 
+async function addConversation(conversation, userId) {
+    try {
+        const _id = new ObjectId(userId);
+
+        const collection = await dbService.getCollection('user')
+        collection.updateOne({ _id }, { $push: { conversation } })
+
+        return true;
+    } catch (err) {
+        logger.error(`cannot update user ${userId}`, err)
+        throw err
+    }
+}
