@@ -34,23 +34,35 @@ async function getAvailableModels() {
 }
 
 async function askAiQuestion(userMessage, messagesLog) {
+	console.log("asking backend");
+	console.log("1");
+
 	try {
-		messagesLog.push({
+		const systemMessages = []
+		systemMessages.push({
 			"role": "system",
-			"content": "Use proper HTML structure with <h1>, <h2>, <p>, <ul>. if the answer require real data that you do not have return in capital letter NO INTERNT"
+			"content": "Use proper HTML structure with <h1>, <h2>, <p>, <ul>."
 
 		})
-		messagesLog.push({
+		systemMessages.push({
+			"role": "system",
+			"content": "if your answer require real data or you need access to internet or you dont have the data return in capital letter NO INTERNET"
+
+		})
+		systemMessages.push({
 			"role": "system",
 			"content": "You are a highly adaptable assistant who tailors your responses based on the tone and nature of the user’s questions. Your responses should align with the mood and content of the query, ensuring they feel appropriate and engaging. For serious questions, provide informative and thoughtful responses. For humorous questions, use humor and wit."
 
 		})
+		const messagesToAi = messagesLog.concat(systemMessages)
+
+
 
 		const model = _getBestGPTModelResponse(userMessage)
 		const httpDataObj = {
 			headers: API_HEADERS,
 			data: {
-				messages: messagesLog,
+				messages: messagesToAi,
 				model,
 				max_tokens: 4096,
 				temperature: 0.7,
@@ -60,25 +72,31 @@ async function askAiQuestion(userMessage, messagesLog) {
 		}
 
 		const askAiRes = await httpService.httpPost(`${API_URL}/chat/completions`, httpDataObj)
+		console.log("2");
 		const choices = askAiRes.data.choices
 
 		// TO FIX For Loop choices
 		const answer = choices[0].message.content
 		const isSearchGoogle = (answer == "NO INTERNET") || answer.includes("don't have real-time") || answer.includes("provide real-time") || answer.includes("require an internet")
-		if (answer == "NO INTERNET") {
+		if (answer == "NO INTERNET" || answer.includes("NO INTERNET")) {
 
 			const googleResults = await _searchGoogleCustomAPI(userMessage)
+			console.log("3");
 			//const messagesByGoogleResult = _setGoogleResultToMessagesFormat(googleResults)
 
-			const messagesByGoogleResult = `Summarize the following search results:\n` +
+			const summarizeGoogleResult = `Summarize the following search results:\n` +
 				googleResults.map(result => `Title: ${result.title}\nSnippet: ${result.snippet}\nLink: ${result.link}`).join("\n\n");
 
-			//messagesLog.push({ role: "assistant", content: messagesByGoogleResult })
+			const messagesByGoogle = {
+				role: "assistant",
+				content: summarizeGoogleResult
+			}
+			const messagesToAiByGoogle=messagesByGoogle.concat(systemMessages)
 
 			const httpDataObj = {
 				headers: API_HEADERS,
 				data: {
-					messages: [{ role: "assistant", content: messagesByGoogleResult }],
+					messages: messagesToAiByGoogle,
 					model,
 					max_tokens: 4096,
 					temperature: 0.7,
@@ -88,14 +106,19 @@ async function askAiQuestion(userMessage, messagesLog) {
 			}
 
 			const askAiResWithGoogle = await httpService.httpPost(`${API_URL}/chat/completions`, httpDataObj)
+			console.log("4");
 
 			return askAiResWithGoogle.data.choices[0].message.content
 
 		}
 		//const isAdded = await _addAnswerToDb(answer)
+		console.log("5");
 		return answer
 
 	} catch (err) {
+		logger.error('Failed to askAiQuestion ' + err)
+		console.log("askAiQuestion - ", err);
+
 		throw err
 	}
 }
