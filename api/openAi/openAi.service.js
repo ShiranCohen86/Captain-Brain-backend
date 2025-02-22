@@ -37,15 +37,18 @@ async function getAvailableModels() {
 async function askAiQuestion(userMessage, userId) {
 	try {
 
+		console.log(11);
 		const messages = _buildMessagesToAi(userMessage, userId)
 
 		const model = _getBestGPTModelResponse(userMessage)
-		const firstMessagesToAi = []
-		firstMessagesToAi.push(messages)
-		firstMessagesToAi.push({
+		const firstMessagesToAi = [{
 			"role": "system",
-			"content": `if your answer require real data or you need access to internet or you dont have the data return in capital letter NO INTERNET`
-		})
+			"content": `if your answer require real data or time or you need access to internet or you do not have the data return only no internet`
+		}]
+
+		firstMessagesToAi.concat(messages)
+		console.log({ firstMessagesToAi });
+
 		const httpDataObj = {
 			headers: API_HEADERS,
 			data: {
@@ -65,6 +68,7 @@ async function askAiQuestion(userMessage, userId) {
 		const answer = choices[0].message.content
 
 		if (answer.toLowerCase().includes("no internet")) {
+			console.log("google");
 
 			const googleResults = await _searchGoogleCustomAPI(userMessage)
 			//const messagesByGoogleResult = _setGoogleResultToMessagesFormat(googleResults)
@@ -91,7 +95,6 @@ async function askAiQuestion(userMessage, userId) {
 			}
 
 			const askAiResWithGoogle = await httpService.httpPost(`${API_URL}/chat/completions`, httpDataObj)
-			console.log({ askAiResWithGoogle });
 
 
 			return askAiResWithGoogle.data.choices[0].message.content
@@ -251,9 +254,9 @@ function _buildMessagesToAi(userMessage, userId) {
 
 	const systemMessages = {
 		"role": "system",
-		"content": `the answer from you set in proper HTML structure with <h1>, <h2>, <p>, <ul>./n
-		 You are a highly adaptable assistant who tailors your responses based on the tone and nature of the user’s questions./n
-		 Your responses should align with the mood and content of the query, ensuring they feel appropriate and engaging./n
+		"content": `the answer from you set in proper HTML structure with <h1>, <h2>, <p>, <ul>.
+		 You are a highly adaptable assistant who tailors your responses based on the tone and nature of the user’s questions.
+		 Your responses should align with the mood and content of the query, ensuring they feel appropriate and engaging.
 		 For serious questions, provide informative and thoughtful responses. For humorous questions, use humor and wit.`
 	}
 
