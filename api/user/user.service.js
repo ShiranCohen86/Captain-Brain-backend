@@ -127,7 +127,7 @@ async function add(user) {
             password: user.password,
             phone: user.phone,
             token: user.phone,
-            conversation: []
+            conversations: []
         }
 
         const res = await collection.insertOne(userToAdd)
@@ -219,7 +219,9 @@ async function getUser(phone, password, token) {
 }
 async function getMessagesByUserId(userId) {
     try {
+        console.log(1, userId);
         const resObj = await getUserById(userId)
+        console.log(2, resObj);
 
         if (!resObj.success) {
         }

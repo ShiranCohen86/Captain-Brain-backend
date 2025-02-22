@@ -40,6 +40,9 @@ async function getAvailableModels() {
 async function askAiQuestion(userMessage, user, sessionConversation) {
 	try {
 		const messages = await _buildMessagesToAi(userMessage, user, sessionConversation?.messages)
+		console.log({ messages });
+
+
 		const systemConfigFirst = {
 			"role": "system",
 			"content": "the answer from you set in proper HTML structure with <h1>, <h2>, <p>, <ul>. if require access real data or you need access to internet or you do not have information return in capital 'NO INTERNET' only. You are a highly adaptable assistant who tailors your responses based on the tone and nature of the user’s questions. Your responses should align with the mood and content of the query, ensuring they feel appropriate and engaging. For serious questions, provide informative and thoughtful responses. For humorous questions, use humor and wit."
@@ -70,7 +73,6 @@ async function askAiQuestion(userMessage, user, sessionConversation) {
 			console.log("google");
 
 			const googleResults = await _searchGoogleCustomAPI(userMessage)
-			console.log(1);
 			//const messagesByGoogleResult = _setGoogleResultToMessagesFormat(googleResults)
 
 			const summarizeGoogleResult = `Summarize the following search results:\n` +
@@ -81,7 +83,6 @@ async function askAiQuestion(userMessage, user, sessionConversation) {
 				content: summarizeGoogleResult
 			}
 			messages.push(messagesByGoogle)
-			console.log(2);
 
 			const systemConfigFirst = {
 				"role": "system",
@@ -89,7 +90,6 @@ async function askAiQuestion(userMessage, user, sessionConversation) {
 			}
 			messages.push(systemConfigFirst)
 
-			console.log(3);
 			const httpDataObj = {
 				headers: API_HEADERS,
 				data: {
@@ -267,9 +267,20 @@ function _getBestGPTModelResponse(question) {
 
 async function _buildMessagesToAi(userMessage, user = {}, sessionConversation = []) {
 	try {
+
 		let messagesToReturn = []
 		if (Object.keys(user).length) {
-			const hisMessages = await userService.getMessagesByUserId(user._id)
+			messagesToReturn = user.conversations.map((conversation) => {
+				if (conversation?.messages.length) {
+					return conversation.messages.map((message) => {
+						return {
+							role: message.role === "user" ? "user" : "assistant",
+							content: message.content
+						}
+					})
+
+				}
+			})
 
 
 			//messagesToReturn.push(hisMessages)
@@ -278,6 +289,8 @@ async function _buildMessagesToAi(userMessage, user = {}, sessionConversation = 
 				messagesToReturn = messagesToReturn.concat(sessionConversation)
 			}
 		}
+
+		messagesToReturn = messagesToReturn.flat()
 
 		const role = getRoleByMessage(userMessage)
 		messagesToReturn.push({
