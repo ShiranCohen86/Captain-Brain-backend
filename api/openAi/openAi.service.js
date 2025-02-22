@@ -66,6 +66,7 @@ async function askAiQuestion(userMessage, userId) {
 
 		// TO FIX For Loop choices
 		const answer = choices[0].message.content
+		console.log({ answer });
 
 		if (answer.toLowerCase().includes("no internet")) {
 			console.log("google");
