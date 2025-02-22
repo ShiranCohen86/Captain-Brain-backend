@@ -40,6 +40,12 @@ async function askAiQuestion(userMessage, userId) {
 		const messages = _buildMessagesToAi(userMessage, userId)
 
 		const model = _getBestGPTModelResponse(userMessage)
+		const firstMessagesToAi = []
+		firstMessagesToAi.push(messages)
+		firstMessagesToAi.push({
+			"role": "system",
+			"content": `if your answer require real data or you need access to internet or you dont have the data return in capital letter NO INTERNET`
+		})
 		const httpDataObj = {
 			headers: API_HEADERS,
 			data: {
@@ -70,12 +76,12 @@ async function askAiQuestion(userMessage, userId) {
 				role: "assistant",
 				content: summarizeGoogleResult
 			}
-			messagesToAi.push(messagesByGoogle)
+			messages.push(messagesByGoogle)
 
 			const httpDataObj = {
 				headers: API_HEADERS,
 				data: {
-					messages: messagesToAi,
+					messages: messages,
 					model,
 					max_tokens: 4096,
 					temperature: 0.7,
@@ -85,6 +91,8 @@ async function askAiQuestion(userMessage, userId) {
 			}
 
 			const askAiResWithGoogle = await httpService.httpPost(`${API_URL}/chat/completions`, httpDataObj)
+			console.log({ askAiResWithGoogle });
+
 
 			return askAiResWithGoogle.data.choices[0].message.content
 
@@ -243,9 +251,12 @@ function _buildMessagesToAi(userMessage, userId) {
 
 	const systemMessages = {
 		"role": "system",
-		"content": "the answer from you set in proper HTML structure with <h1>, <h2>, <p>, <ul>./n if your answer require real data or you need access to internet or you dont have the data return in capital letter NO INTERNET /n You are a highly adaptable assistant who tailors your responses based on the tone and nature of the user’s questions. Your responses should align with the mood and content of the query, ensuring they feel appropriate and engaging. For serious questions, provide informative and thoughtful responses. For humorous questions, use humor and wit. "
-
+		"content": `the answer from you set in proper HTML structure with <h1>, <h2>, <p>, <ul>./n
+		 You are a highly adaptable assistant who tailors your responses based on the tone and nature of the user’s questions./n
+		 Your responses should align with the mood and content of the query, ensuring they feel appropriate and engaging./n
+		 For serious questions, provide informative and thoughtful responses. For humorous questions, use humor and wit.`
 	}
+
 	messagesToReturn.push(systemMessages)
 
 	return messagesToReturn
