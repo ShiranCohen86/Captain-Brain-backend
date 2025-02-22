@@ -10,21 +10,22 @@ module.exports = {
 async function askAiQuestion(req, res) {
   try {
     const { userMessage } = req.body
-    const { user, messages } = req.session
-    const answer = await openAiService.askAiQuestion(userMessage, user, messages)
+    const { user, conversation } = req.session
+    const resObj = await openAiService.askAiQuestion(userMessage, user, conversation)
 
 
-    if (req.session.messages?.length) {
-      req.session.messages.push(...[{ role: "user", content: userMessage }, { role: "system", content: answer }])
+    if (req.session?.conversation?.messages) {
+
+      req.session.conversation.messages.push(...[{ role: "user", content: userMessage }, { role: "system", content: resObj.answer }])
 
     } else {
-      req.session.messages = [{ role: "user", content: userMessage }, { role: "system", content: answer }]
-      
+      req.session.conversation = {
+        _id: resObj.conversionId,
+        messages: [{ role: "user", content: userMessage }, { role: "system", content: resObj.answer }]
+      }
     }
-    console.log("req.session.messages", req.session.messages);
 
-
-    res.json(answer)
+    res.json(resObj.answer)
   } catch (err) {
     logger.error('openAi.controller - askAiQuestion -', err)
 

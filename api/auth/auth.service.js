@@ -25,6 +25,8 @@ async function login(phone, password, token) {
     delete resObj.user.token;
     return { success: true, user: resObj.user, token };
   } catch (err) {
+    console.log(err);
+    
     logger.error('auth.service - login -', err)
     throw err
   }

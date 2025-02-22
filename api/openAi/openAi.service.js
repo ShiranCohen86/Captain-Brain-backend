@@ -3,6 +3,7 @@ const httpService = require('../../services/httpService');
 const asyncLocalStorage = require('../../services/als.service');
 const logger = require('../../services/logger.service')
 const userService = require("../user/user.service");
+const { Timestamp } = require('mongodb');
 
 const API_URL = 'https://api.openai.com/v1';
 const API_HEADERS = {
@@ -36,16 +37,16 @@ async function getAvailableModels() {
 	}
 }
 
-async function askAiQuestion(userMessage, user, sessionMessages) {
+async function askAiQuestion(userMessage, user, sessionConversation) {
 	try {
-		const messages = await _buildMessagesToAi(userMessage, user, sessionMessages)
+		const messages = await _buildMessagesToAi(userMessage, user, sessionConversation?.messages)
 		const systemConfigFirst = {
 			"role": "system",
 			"content": "the answer from you set in proper HTML structure with <h1>, <h2>, <p>, <ul>. if require access real data or you need access to internet or you do not have information return in capital 'NO INTERNET' only. You are a highly adaptable assistant who tailors your responses based on the tone and nature of the user’s questions. Your responses should align with the mood and content of the query, ensuring they feel appropriate and engaging. For serious questions, provide informative and thoughtful responses. For humorous questions, use humor and wit."
 		}
-		console.log({ messages });
 
 		const firstMessagesToAi = messages.concat([systemConfigFirst])
+
 		const model = _getBestGPTModelResponse(userMessage)
 		const httpDataObj = {
 			headers: API_HEADERS,
@@ -61,13 +62,15 @@ async function askAiQuestion(userMessage, user, sessionMessages) {
 
 		const askAiRes = await httpService.httpPost(`${API_URL}/chat/completions`, httpDataObj)
 		const choices = askAiRes.data.choices
-
 		// TO FIX For Loop choices
-		const answer = choices[0].message.content
+		let answer = choices[0].message.content
+		//if (answer.toLowerCase().includes("no internet")) {
+		let answerToResponse = {}
 		if (answer.toLowerCase().includes("no internet")) {
 			console.log("google");
 
 			const googleResults = await _searchGoogleCustomAPI(userMessage)
+			console.log(1);
 			//const messagesByGoogleResult = _setGoogleResultToMessagesFormat(googleResults)
 
 			const summarizeGoogleResult = `Summarize the following search results:\n` +
@@ -78,6 +81,7 @@ async function askAiQuestion(userMessage, user, sessionMessages) {
 				content: summarizeGoogleResult
 			}
 			messages.push(messagesByGoogle)
+			console.log(2);
 
 			const systemConfigFirst = {
 				"role": "system",
@@ -85,6 +89,7 @@ async function askAiQuestion(userMessage, user, sessionMessages) {
 			}
 			messages.push(systemConfigFirst)
 
+			console.log(3);
 			const httpDataObj = {
 				headers: API_HEADERS,
 				data: {
@@ -98,27 +103,46 @@ async function askAiQuestion(userMessage, user, sessionMessages) {
 			}
 
 			const askAiResWithGoogle = await httpService.httpPost(`${API_URL}/chat/completions`, httpDataObj)
-
-
-			return askAiResWithGoogle.data.choices[0].message.content
+			answer = askAiResWithGoogle.data.choices[0].message.content
 
 		}
-		//const isAdded = await _addAnswerToDb(answer)
-		return answer
+
+		let conversionId = ""
+
+		if (user?._id) {
+			const messagesToSave = [{
+				createdAt: "Timestamp",
+				role: "user",
+				content: userMessage
+			},
+			{
+				createdAt: "Timestamp",
+				role: "system",
+				content: answer
+			}]
+
+			if (sessionConversation?._id) {
+
+				userService.addAnswerToConversation(messagesToSave, user._id, sessionConversation._id)
+
+			} else {
+				const resObj = await userService.addConversation(messagesToSave, user._id)
+				conversionId = resObj.conversationId
+			}
+
+		}
+		return { success: true, answer, conversionId }
 
 	} catch (err) {
 		logger.error('Failed to askAiQuestion ' + err)
-		console.log("askAiQuestion - ", err);
-
 		throw err
 	}
 }
+
 function getMessagesByUserId() {
 	return ""
 }
-const _addAnswerToDb = (answer) => {
-	return ""
-}
+
 function getRoleByMessage(message) {
 	// Normalize the message to lowercase for easier pattern matching
 	const normalizedMessage = message.trim().toLowerCase();
@@ -195,6 +219,7 @@ function getRoleByMessage(message) {
 	return 'user';
 
 };
+
 function _setGoogleResultToMessagesFormat(googleResults) {
 	return googleResults.map((result) => {
 		return {
@@ -203,6 +228,7 @@ function _setGoogleResultToMessagesFormat(googleResults) {
 		}
 	})
 }
+
 // Function to search using Google Custom Search API
 async function _searchGoogleCustomAPI(query) {
 	const url = 'https://www.googleapis.com/customsearch/v1';
@@ -224,6 +250,7 @@ async function _searchGoogleCustomAPI(query) {
 		console.error("Error fetching data from Google Custom Search API:", error);
 	}
 }
+
 function _getBestGPTModelResponse(question) {
 	const questionLength = question.length;
 
@@ -237,19 +264,18 @@ function _getBestGPTModelResponse(question) {
 	}
 	return model;
 }
-async function _buildMessagesToAi(userMessage, user = {}, sessionMessages = []) {
-	try {
-		console.log(userMessage, user, sessionMessages);
 
+async function _buildMessagesToAi(userMessage, user = {}, sessionConversation = []) {
+	try {
 		let messagesToReturn = []
 		if (Object.keys(user).length) {
 			const hisMessages = await userService.getMessagesByUserId(user._id)
-			console.log({ hisMessages });
+
 
 			//messagesToReturn.push(hisMessages)
 		} else {
-			if (sessionMessages.length) {
-				messagesToReturn = messagesToReturn.concat(sessionMessages)
+			if (sessionConversation.length) {
+				messagesToReturn = messagesToReturn.concat(sessionConversation)
 			}
 		}
 
@@ -258,7 +284,6 @@ async function _buildMessagesToAi(userMessage, user = {}, sessionMessages = []) 
 			role,
 			content: userMessage
 		})
-		console.log({ messagesToReturn });
 
 
 		return messagesToReturn

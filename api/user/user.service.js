@@ -1,6 +1,7 @@
 
 const asyncLocalStorage = require('../../services/als.service');
 const dbService = require('../../services/db.service')
+const utilService = require('../../services/utilService')
 const logger = require('../../services/logger.service')
 const authService = require('../auth/auth.service')
 
@@ -16,7 +17,8 @@ module.exports = {
     getUserByToken,
     addConversation,
     getUser,
-    getMessagesByUserId
+    getMessagesByUserId,
+    addAnswerToConversation
 }
 
 async function query(filterBy = {}) {
@@ -160,14 +162,44 @@ function _buildCriteria(filterBy) {
 
 async function addConversation(conversation, userId) {
     try {
+        const collection = await dbService.getCollection('user')
+        console.log(2);
+
+        const conversationId = utilService.makeId()
+        console.log(3, conversationId);
+        const conversationToAdd = {
+            _id: conversationId,
+            messages: conversation,
+            createdAt: "timestamp"
+        }
+
+        console.log(4, conversationToAdd);
         const _id = new ObjectId(userId);
 
+        const isUpdate = await collection.updateOne({ _id }, { $push: { conversations: conversationToAdd } })
+        console.log(5, isUpdate);
+
+
+
+        return { success: true, conversationId };
+    } catch (err) {
+        logger.error(`cannot addConversation ${userId}`, err)
+        throw err
+    }
+}
+async function addAnswerToConversation(messages, userId, conversationId) {
+
+    try {
+        const _id = new ObjectId(userId);
         const collection = await dbService.getCollection('user')
-        collection.updateOne({ _id }, { $push: { conversation } })
+        const isUpdate = await collection.updateOne(
+            { _id, "conversations._id": conversationId },
+            { $push: { "conversations.$.messages": { $each: messages } } }
+        )
 
         return true;
     } catch (err) {
-        logger.error(`cannot update user ${userId}`, err)
+        logger.error(`cannot addAnswerToConversation ${userId}`, err)
         throw err
     }
 }
@@ -188,6 +220,7 @@ async function getUser(phone, password, token) {
 async function getMessagesByUserId(userId) {
     try {
         const resObj = await getUserById(userId)
+
         if (!resObj.success) {
         }
 
