@@ -1,6 +1,8 @@
 const axios = require('axios');
 const httpService = require('../../services/httpService');
 const asyncLocalStorage = require('../../services/als.service');
+const logger = require('../../services/logger.service')
+const userService = require("../user/user.service");
 
 const API_URL = 'https://api.openai.com/v1';
 const API_HEADERS = {
@@ -34,21 +36,17 @@ async function getAvailableModels() {
 	}
 }
 
-async function askAiQuestion(userMessage, userId) {
+async function askAiQuestion(userMessage, user, sessionMessages) {
 	try {
-
-		console.log(11);
-		const messages = _buildMessagesToAi(userMessage, userId)
-
-		const model = _getBestGPTModelResponse(userMessage)
-		const firstMessagesToAi = [{
+		const messages = await _buildMessagesToAi(userMessage, user, sessionMessages)
+		const systemConfigFirst = {
 			"role": "system",
-			"content": `if your answer require real data or time or you need access to internet or you do not have the data return only no internet`
-		}]
+			"content": "the answer from you set in proper HTML structure with <h1>, <h2>, <p>, <ul>. if require access real data or you need access to internet or you do not have information return in capital 'NO INTERNET' only. You are a highly adaptable assistant who tailors your responses based on the tone and nature of the user’s questions. Your responses should align with the mood and content of the query, ensuring they feel appropriate and engaging. For serious questions, provide informative and thoughtful responses. For humorous questions, use humor and wit."
+		}
+		console.log({ messages });
 
-		firstMessagesToAi.concat(messages)
-		console.log({ firstMessagesToAi });
-
+		const firstMessagesToAi = messages.concat([systemConfigFirst])
+		const model = _getBestGPTModelResponse(userMessage)
 		const httpDataObj = {
 			headers: API_HEADERS,
 			data: {
@@ -66,8 +64,6 @@ async function askAiQuestion(userMessage, userId) {
 
 		// TO FIX For Loop choices
 		const answer = choices[0].message.content
-		console.log({ answer });
-
 		if (answer.toLowerCase().includes("no internet")) {
 			console.log("google");
 
@@ -82,6 +78,12 @@ async function askAiQuestion(userMessage, userId) {
 				content: summarizeGoogleResult
 			}
 			messages.push(messagesByGoogle)
+
+			const systemConfigFirst = {
+				"role": "system",
+				"content": "the answer from you set in proper HTML structure with <h1>, <h2>, <p>, <ul>.You are a highly adaptable assistant who tailors your responses based on the tone and nature of the user’s questions. Your responses should align with the mood and content of the query, ensuring they feel appropriate and engaging. For serious questions, provide informative and thoughtful responses. For humorous questions, use humor and wit."
+			}
+			messages.push(systemConfigFirst)
 
 			const httpDataObj = {
 				headers: API_HEADERS,
@@ -235,35 +237,36 @@ function _getBestGPTModelResponse(question) {
 	}
 	return model;
 }
-function _buildMessagesToAi(userMessage, userId) {
-	const messagesToReturn = []
-	if (userId) {
-		//const hisMessages = await openAiService.getMessagesByUserId(userId)
-		//messagesToReturn.push(hisMessages)
-	} else {
-		if (req.session.messages?.length) {
-			messagesToReturn.push(...req.session.messages)
+async function _buildMessagesToAi(userMessage, user = {}, sessionMessages = []) {
+	try {
+		console.log(userMessage, user, sessionMessages);
+
+		let messagesToReturn = []
+		if (Object.keys(user).length) {
+			const hisMessages = await userService.getMessagesByUserId(user._id)
+			console.log({ hisMessages });
+
+			//messagesToReturn.push(hisMessages)
+		} else {
+			if (sessionMessages.length) {
+				messagesToReturn = messagesToReturn.concat(sessionMessages)
+			}
 		}
+
+		const role = getRoleByMessage(userMessage)
+		messagesToReturn.push({
+			role,
+			content: userMessage
+		})
+		console.log({ messagesToReturn });
+
+
+		return messagesToReturn
+
+	} catch (err) {
+		logger.error('Failed to _buildMessagesToAi ' + err)
+		throw err
 	}
-
-	const role = getRoleByMessage(userMessage)
-
-	messagesToReturn.push({
-		role,
-		content: userMessage
-	})
-
-	const systemMessages = {
-		"role": "system",
-		"content": `the answer from you set in proper HTML structure with <h1>, <h2>, <p>, <ul>.
-		 You are a highly adaptable assistant who tailors your responses based on the tone and nature of the user’s questions.
-		 Your responses should align with the mood and content of the query, ensuring they feel appropriate and engaging.
-		 For serious questions, provide informative and thoughtful responses. For humorous questions, use humor and wit.`
-	}
-
-	messagesToReturn.push(systemMessages)
-
-	return messagesToReturn
 
 
 }

@@ -15,7 +15,8 @@ module.exports = {
     add,
     getUserByToken,
     addConversation,
-    getUser
+    getUser,
+    getMessagesByUserId
 }
 
 async function query(filterBy = {}) {
@@ -75,7 +76,19 @@ async function getUserByToken(token) {
         if (!user) return { success: false, message: "no exist user" }
         return { success: true, user }
     } catch (err) {
-        logger.error(`while finding phone ${phone}`, err)
+        logger.error(`while finding phone ${token}`, err)
+        throw err
+    }
+}
+async function getUserById(userId) {
+    try {
+        if (!userId) return { success: false, message: "no userId value" }
+        const collection = await dbService.getCollection('user')
+        const user = await collection.findOne({ "_id": userId })
+        if (!user) return { success: false, message: "no exist user" }
+        return { success: true, user }
+    } catch (err) {
+        logger.error(`while finding id ${userId}`, err)
         throw err
     }
 }
@@ -167,6 +180,18 @@ async function getUser(phone, password, token) {
         }
 
         return true;
+    } catch (err) {
+        logger.error(`cannot update user ${userId}`, err)
+        throw err
+    }
+}
+async function getMessagesByUserId(userId) {
+    try {
+        const resObj = await getUserById(userId)
+        if (!resObj.success) {
+        }
+
+        return resObj?.user?.conversation;
     } catch (err) {
         logger.error(`cannot update user ${userId}`, err)
         throw err

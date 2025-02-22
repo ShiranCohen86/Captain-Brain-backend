@@ -7,7 +7,7 @@ async function setupAsyncLocalStorage(req, res, next) {
     if (req.sessionID) {
       const alsStore = asyncLocalStorage.getStore()
       alsStore.sessionId = req.sessionID
-      console.log("is - ",req.session);
+      console.log("setupAsyncLocalStorage - session: ",req.session);
 
       if (res.session?.user) {
         alsStore.userId = req.session.user._id

@@ -1,4 +1,6 @@
 const openAiService = require('./openAi.service');
+const logger = require('../../services/logger.service')
+
 
 module.exports = {
   askAiQuestion,
@@ -8,23 +10,24 @@ module.exports = {
 async function askAiQuestion(req, res) {
   try {
     const { userMessage } = req.body
-    const userId = req.session?.user?._id
-    
-    const answer = await openAiService.askAiQuestion(userMessage,userId)
-    
+    const { user, messages } = req.session
+    const answer = await openAiService.askAiQuestion(userMessage, user, messages)
 
-    /*
-        if (req.session.messages?.length) {
-          req.session.messages.push(...[{ role: role, content: userMessage }, { role: "system", content: answer }])
-    
-        } else {
-          req.session.messages = [{ role: role, content: userMessage }, { role: "system", content: answer }]
-        }
-        console.log("laaasss", answer);
-    
-      */
+
+    if (req.session.messages?.length) {
+      req.session.messages.push(...[{ role: "user", content: userMessage }, { role: "system", content: answer }])
+
+    } else {
+      req.session.messages = [{ role: "user", content: userMessage }, { role: "system", content: answer }]
+      
+    }
+    console.log("req.session.messages", req.session.messages);
+
+
     res.json(answer)
   } catch (err) {
+    logger.error('openAi.controller - askAiQuestion -', err)
+
     res.status(500).json(err);
   }
 }
