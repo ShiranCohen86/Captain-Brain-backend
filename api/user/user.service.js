@@ -1,17 +1,21 @@
 
+const asyncLocalStorage = require('../../services/als.service');
 const dbService = require('../../services/db.service')
 const logger = require('../../services/logger.service')
+const authService = require('../auth/auth.service')
+
 const { ObjectId } = require("mongodb");
 
 module.exports = {
     query,
     getById,
-    getByUsername,
+    getUserByUsername,
     remove,
     update,
     add,
-    getByToken,
-    addConversation
+    getUserByToken,
+    addConversation,
+    getUser
 }
 
 async function query(filterBy = {}) {
@@ -51,7 +55,7 @@ async function getById(userId) {
         throw err
     }
 }
-async function getByUsername(phone) {
+async function getUserByUsername(phone) {
     try {
         const collection = await dbService.getCollection('user')
         const user = await collection.findOne({ phone })
@@ -62,7 +66,8 @@ async function getByUsername(phone) {
         throw err
     }
 }
-async function getByToken(token) {
+
+async function getUserByToken(token) {
     try {
         if (!token) return { success: false, message: "no token value" }
         const collection = await dbService.getCollection('user')
@@ -78,7 +83,7 @@ async function getByToken(token) {
 async function remove(userId) {
     try {
         const collection = await dbService.getCollection('user')
-        await collection.deleteOne({ '_id': ObjectId(userId) })
+        collection.deleteOne({ '_id': ObjectId(userId) })
     } catch (err) {
         logger.error(`cannot remove user ${userId}`, err)
         throw err
@@ -90,7 +95,6 @@ async function update(user) {
         const collection = await dbService.getCollection('user')
         collection.updateOne({ '_id': user._id }, { $set: user })
 
-        return user;
     } catch (err) {
         logger.error(`cannot update user ${user._id}`, err)
         throw err
@@ -99,18 +103,22 @@ async function update(user) {
 
 async function add(user) {
     try {
-        // peek only updatable fields!
-        // const userToAdd = {
-        //     username: user.username,
-        //     password: user.password,
-        //     fullname: user.fullname,
-        // }
         const collection = await dbService.getCollection('user')
         const dbUser = await collection.findOne({ phone: user.phone })
         if (dbUser) return { success: false, message: "phone exist" }
-        user.token = user.phone
-        await collection.insertOne(user)
-        return { success: true }
+
+        const userToAdd = {
+            name: user.name,
+            password: user.password,
+            phone: user.phone,
+            token: user.phone,
+            conversation: []
+        }
+
+        const res = await collection.insertOne(userToAdd)
+        const userId = res.insertedId
+        userToAdd.user_id = userId
+        return { success: true, user: userToAdd }
     } catch (err) {
         logger.error('cannot insert user', err)
         throw err
@@ -143,6 +151,20 @@ async function addConversation(conversation, userId) {
 
         const collection = await dbService.getCollection('user')
         collection.updateOne({ _id }, { $push: { conversation } })
+
+        return true;
+    } catch (err) {
+        logger.error(`cannot update user ${userId}`, err)
+        throw err
+    }
+}
+async function getUser(phone, password, token) {
+    try {
+        let userObj = ""
+        userObj = await getUserByToken(tokenFromFront)
+        if (!userObj.success) {
+            userObj = await authService.login(phone, password)
+        }
 
         return true;
     } catch (err) {

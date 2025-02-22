@@ -7,20 +7,26 @@ module.exports = {
   login,
 };
 
-async function login(phone, password) {
+async function login(phone, password, token) {
   try {
-    const resObj = await userService.getByUsername(phone);
+    let resObj = {}
+    if (token) {
+      resObj = await userService.getUserByToken(token)
+    }
+    if (!Object.keys(resObj).length) {
+      resObj = await userService.getUserByUsername(phone);
+      const match = await bcrypt.compare(password, resObj.user.password);
+      if (!match) return { success: false, message: "incorrect password" }
+    }
     if (!resObj.success) return { success: resObj.success, message: resObj.message }
 
-    const user = resObj.user
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) return { success: false, message: "incorrect password" }
-
     logger.debug(`auth.service - login with phone: ${phone}`);
-    delete user.password;
-    return { success: true, user };
-  } catch (error) {
-    throw error
+    delete resObj.user.password;
+    delete resObj.user.token;
+    return { success: true, user: resObj.user, token };
+  } catch (err) {
+    logger.error('auth.service - login -', err)
+    throw err
   }
 
 }
@@ -30,14 +36,18 @@ async function signup(user) {
     const saltRounds = 10;
     const hash = await bcrypt.hash(user.password, saltRounds);
     user.password = hash;
-    const isAdd = await userService.add(user);
-    if (!isAdd.success) return { success: isAdd.success, message: isAdd.message }
+    const resObj = await userService.add(user);
+    if (!resObj.success) return { success: resObj.success, message: resObj.message }
 
+    const token = resObj.user.token
+    delete resObj.user.password;
+    delete resObj.user.token
     logger.debug(`auth.service - signup with phone: ${user.phone}, fullname: ${user.name}`);
-    delete user.password;
-    return { success: true, user }
-  } catch (error) {
-    throw error
+
+    return { success: true, user: resObj.user, token }
+  } catch (err) {
+    logger.error('auth.service - signup -', err)
+    throw err
   }
 }
 

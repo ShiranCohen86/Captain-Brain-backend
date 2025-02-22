@@ -3,48 +3,26 @@ const openAiService = require('./openAi.service');
 module.exports = {
   askAiQuestion,
   getAvailableModels,
-  consoleLogBackend
 }
-
-function consoleLogBackend(req, res) {
-  try {
-    console.dir(req.body);
-
-
-
-    res.json("")
-  } catch (err) {
-    res.status(500).json(err);
-  }
-}
-
 
 async function askAiQuestion(req, res) {
   try {
     const { userMessage } = req.body
-    const isLoggedUser = req.session.isLogged || 0
+    const userId = req.session?.user?._id
+    
+    const answer = await openAiService.askAiQuestion(userMessage,userId)
+    
 
-    const messagesHis = []
-    if (isLoggedUser) {
-      messagesHis.push(openAiService.getMessagesByUserId(req.session.userId))
-    } else {
-      if (req.session.messages?.length) {
-        messagesHis.push(...req.session.messages)
-      }
-    }
-
-    const role = openAiService.getRoleByMessage(userMessage)
-    messagesHis.push({ role, content: userMessage })
-
-    const answer = await openAiService.askAiQuestion(userMessage, messagesHis)
-
-    if (req.session.messages?.length) {
-      req.session.messages.push(...[{ role: role, content: userMessage }, { role: "system", content: answer }])
-
-    } else {
-      req.session.messages = [{ role: role, content: userMessage }, { role: "system", content: answer }]
-    }
-
+    /*
+        if (req.session.messages?.length) {
+          req.session.messages.push(...[{ role: role, content: userMessage }, { role: "system", content: answer }])
+    
+        } else {
+          req.session.messages = [{ role: role, content: userMessage }, { role: "system", content: answer }]
+        }
+        console.log("laaasss", answer);
+    
+      */
     res.json(answer)
   } catch (err) {
     res.status(500).json(err);

@@ -1,5 +1,6 @@
 const axios = require('axios');
 const httpService = require('../../services/httpService');
+const asyncLocalStorage = require('../../services/als.service');
 
 const API_URL = 'https://api.openai.com/v1';
 const API_HEADERS = {
@@ -33,36 +34,16 @@ async function getAvailableModels() {
 	}
 }
 
-async function askAiQuestion(userMessage, messagesLog) {
-	console.log("asking backend");
-	console.log("1");
-
+async function askAiQuestion(userMessage, userId) {
 	try {
-		const systemMessages = []
-		systemMessages.push({
-			"role": "system",
-			"content": "the answer from you set in proper HTML structure with <h1>, <h2>, <p>, <ul>."
 
-		})
-		systemMessages.push({
-			"role": "system",
-			"content": "if your answer require real data or you need access to internet or you dont have the data return in capital letter NO INTERNET"
-
-		})
-		systemMessages.push({
-			"role": "system",
-			"content": "You are a highly adaptable assistant who tailors your responses based on the tone and nature of the user’s questions. Your responses should align with the mood and content of the query, ensuring they feel appropriate and engaging. For serious questions, provide informative and thoughtful responses. For humorous questions, use humor and wit."
-
-		})
-		const messagesToAi = messagesLog.concat(systemMessages)
-
-
+		const messages = _buildMessagesToAi(userMessage, userId)
 
 		const model = _getBestGPTModelResponse(userMessage)
 		const httpDataObj = {
 			headers: API_HEADERS,
 			data: {
-				messages: messagesToAi,
+				messages: messages,
 				model,
 				max_tokens: 4096,
 				temperature: 0.7,
@@ -72,15 +53,14 @@ async function askAiQuestion(userMessage, messagesLog) {
 		}
 
 		const askAiRes = await httpService.httpPost(`${API_URL}/chat/completions`, httpDataObj)
-		console.log("2");
 		const choices = askAiRes.data.choices
 
 		// TO FIX For Loop choices
 		const answer = choices[0].message.content
+
 		if (answer.toLowerCase().includes("no internet")) {
 
 			const googleResults = await _searchGoogleCustomAPI(userMessage)
-			console.log("3");
 			//const messagesByGoogleResult = _setGoogleResultToMessagesFormat(googleResults)
 
 			const summarizeGoogleResult = `Summarize the following search results:\n` +
@@ -105,13 +85,11 @@ async function askAiQuestion(userMessage, messagesLog) {
 			}
 
 			const askAiResWithGoogle = await httpService.httpPost(`${API_URL}/chat/completions`, httpDataObj)
-			console.log("4");
 
 			return askAiResWithGoogle.data.choices[0].message.content
 
 		}
 		//const isAdded = await _addAnswerToDb(answer)
-		console.log("5");
 		return answer
 
 	} catch (err) {
@@ -244,4 +222,33 @@ function _getBestGPTModelResponse(question) {
 		model = 'gpt-4';
 	}
 	return model;
+}
+function _buildMessagesToAi(userMessage, userId) {
+	const messagesToReturn = []
+	if (userId) {
+		//const hisMessages = await openAiService.getMessagesByUserId(userId)
+		//messagesToReturn.push(hisMessages)
+	} else {
+		if (req.session.messages?.length) {
+			messagesToReturn.push(...req.session.messages)
+		}
+	}
+
+	const role = getRoleByMessage(userMessage)
+
+	messagesToReturn.push({
+		role,
+		content: userMessage
+	})
+
+	const systemMessages = {
+		"role": "system",
+		"content": "the answer from you set in proper HTML structure with <h1>, <h2>, <p>, <ul>./n if your answer require real data or you need access to internet or you dont have the data return in capital letter NO INTERNET /n You are a highly adaptable assistant who tailors your responses based on the tone and nature of the user’s questions. Your responses should align with the mood and content of the query, ensuring they feel appropriate and engaging. For serious questions, provide informative and thoughtful responses. For humorous questions, use humor and wit. "
+
+	}
+	messagesToReturn.push(systemMessages)
+
+	return messagesToReturn
+
+
 }
