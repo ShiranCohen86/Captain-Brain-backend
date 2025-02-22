@@ -49,7 +49,7 @@ async function askAiQuestion(userMessage, userId) {
 		const httpDataObj = {
 			headers: API_HEADERS,
 			data: {
-				messages: messages,
+				messages: firstMessagesToAi,
 				model,
 				max_tokens: 4096,
 				temperature: 0.7,
