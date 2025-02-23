@@ -35,6 +35,8 @@ async function ajax(url, method = 'GET', { headers, data }) {
         //console.log({axiosOptions});
         return await axios(axiosOptions)
     } catch (err) {
+        console.dir(err);
+        
         console.log(`Had Issues ${method}ing to the backend, url: ${url},`)// with data: ${data}`)
 
         if (err.response && err.response.status === 401) {
@@ -43,6 +45,7 @@ async function ajax(url, method = 'GET', { headers, data }) {
         throw err
     }
 }
+
 
 module.exports = {
     httpGet,

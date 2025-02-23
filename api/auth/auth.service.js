@@ -21,12 +21,15 @@ async function login(phone, password, token) {
     if (!resObj.success) return { success: resObj.success, message: resObj.message }
 
     logger.debug(`auth.service - login with phone: ${phone}`);
+    const tokenToCookie = resObj.user.token
     delete resObj.user.password;
     delete resObj.user.token;
-    return { success: true, user: resObj.user, token };
+    console.log(2222, resObj.user);
+
+    return { success: true, user: resObj.user, token: tokenToCookie };
   } catch (err) {
     console.log(err);
-    
+
     logger.error('auth.service - login -', err)
     throw err
   }

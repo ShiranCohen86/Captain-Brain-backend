@@ -134,6 +134,8 @@ async function askAiQuestion(userMessage, user, sessionConversation) {
 		return { success: true, answer, conversionId }
 
 	} catch (err) {
+		console.dir(err.data.error);
+
 		logger.error('Failed to askAiQuestion ' + err)
 		throw err
 	}
@@ -291,6 +293,8 @@ async function _buildMessagesToAi(userMessage, user = {}, sessionConversation = 
 		}
 
 		messagesToReturn = messagesToReturn.flat()
+		console.log({ messagesToReturn });
+
 
 		const role = getRoleByMessage(userMessage)
 		messagesToReturn.push({
@@ -302,6 +306,7 @@ async function _buildMessagesToAi(userMessage, user = {}, sessionConversation = 
 		return messagesToReturn
 
 	} catch (err) {
+
 		logger.error('Failed to _buildMessagesToAi ' + err)
 		throw err
 	}
