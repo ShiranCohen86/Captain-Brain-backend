@@ -163,23 +163,16 @@ function _buildCriteria(filterBy) {
 async function addConversation(conversation, userId) {
     try {
         const collection = await dbService.getCollection('user')
-        console.log(2);
-
         const conversationId = utilService.makeId()
-        console.log(3, conversationId);
+
         const conversationToAdd = {
             _id: conversationId,
             messages: conversation,
             createdAt: "timestamp"
         }
 
-        console.log(4, conversationToAdd);
         const _id = new ObjectId(userId);
-
         const isUpdate = await collection.updateOne({ _id }, { $push: { conversations: conversationToAdd } })
-        console.log(5, isUpdate);
-
-
 
         return { success: true, conversationId };
     } catch (err) {
@@ -219,10 +212,7 @@ async function getUser(phone, password, token) {
 }
 async function getMessagesByUserId(userId) {
     try {
-        console.log(1, userId);
         const resObj = await getUserById(userId)
-        console.log(2, resObj);
-
         if (!resObj.success) {
         }
 

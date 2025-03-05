@@ -24,7 +24,6 @@ async function login(phone, password, token) {
     const tokenToCookie = resObj.user.token
     delete resObj.user.password;
     delete resObj.user.token;
-    console.log(2222, resObj.user);
 
     return { success: true, user: resObj.user, token: tokenToCookie };
   } catch (err) {

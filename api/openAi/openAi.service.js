@@ -40,9 +40,6 @@ async function getAvailableModels() {
 async function askAiQuestion(userMessage, user, sessionConversation) {
 	try {
 		const messages = await _buildMessagesToAi(userMessage, user, sessionConversation?.messages)
-		console.log({ messages });
-
-
 		const systemConfigFirst = {
 			"role": "system",
 			"content": "the answer from you set in proper HTML structure with <h1>, <h2>, <p>, <ul>. if require access real data or you need access to internet or you do not have information return in capital 'NO INTERNET' only. You are a highly adaptable assistant who tailors your responses based on the tone and nature of the user’s questions. Your responses should align with the mood and content of the query, ensuring they feel appropriate and engaging. For serious questions, provide informative and thoughtful responses. For humorous questions, use humor and wit."
@@ -293,8 +290,6 @@ async function _buildMessagesToAi(userMessage, user = {}, sessionConversation = 
 		}
 
 		messagesToReturn = messagesToReturn.flat()
-		console.log({ messagesToReturn });
-
 
 		const role = getRoleByMessage(userMessage)
 		messagesToReturn.push({
